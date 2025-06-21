@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: ollama-init
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: []
+    command: 
+     - /bin/sh 
+     - -c 
+     - ollama pull mistral && ollama pull avr/sfr-embedding-mistral
+    volumes:
+      - ollama_data:/root/.ollama
+    depends_on:
+      ollama:
+        condition: service_started
+    networks:
+      - backend
+    
+  ollama:
+    # depends_on:
+    #   db:
+    #     condition: service_started
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - MODELS=mistral:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      backend:
+        aliases:
+          - ollama
+
+
+  # pgvector:
+  #   image: pgvector/pgvector:pg17
+  #   container_name: pgvector
+  #   environment:
+  #     POSTGRES_USER: ollama_user
+  #     POSTGRES_PASSWORD: ollama_pass
+  #     POSTGRES_DB: ollama_db
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pg_data:/var/lib/postgresql/data
+  #   networks:
+  #     - backend
+
+  
+
+volumes:
+  ollama_data:
+  # pg_data:
+
+networks:
+  backend:
