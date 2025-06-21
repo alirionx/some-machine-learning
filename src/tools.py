@@ -1,48 +1,41 @@
 import os
 import hashlib
+import uuid
 import ollama
-import psycopg
 import pdfplumber
+
+from qdrant_client import QdrantClient
+from qdrant_client.models import (
+    Distance, 
+    VectorParams, 
+    PointStruct, 
+    Filter, 
+    FieldCondition, 
+    MatchValue, 
+    FilterSelector,
+    ScoredPoint,
+    QueryResponse )
+
 
 # some config------------------------------
 DBHOST = os.environ.get("DBHOST", "localhost")
-DBPORT = (os.environ.get("DBPORT", "5432"))
-DBNAME = os.environ.get("DBNAME", "ollama_db")
-DBUSER = os.environ.get("DBUSER", "ollama_user")
-DBPASSWORD = os.environ.get("DBPASSWORD", "ollama_pass")
+DBPORT = int((os.environ.get("DBPORT", "6333")))
+DBCOLLECTION = os.environ.get("DBCOLLECTION", "ollama_collection")
 
 LLMMODEL_CHAT = os.environ.get("LLMMODEL_CHAT", "mistral")
 LLMMODEL_EMBED = os.environ.get("LLMMODEL_EMBED", "avr/sfr-embedding-mistral")
 
 #------------------------------------------
-def get_pg_conn() -> psycopg.Connection:
-    conn = psycopg.connect( f"""
-        dbname={DBNAME} 
-        user={DBUSER}  
-        password={DBPASSWORD}  
-        host={DBHOST}  
-        port={DBPORT}
-    """) 
-    return conn
-
-#--------------------
 def check_db_prep():
-    conn = get_pg_conn()
-    cur = conn.cursor()
-    cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
-    conn.commit()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS embeddings (
-            id SERIAL PRIMARY KEY,
-            doc_name TEXT,
-            doc_index INTEGER,
-            text TEXT,
-            text_hash TEXT UNIQUE,
-            embedding vector(4096)  
-        );
-        """)
-    conn.commit()
-    conn.close()
+    qdrant = QdrantClient(host=DBHOST, port=DBPORT)
+    if not qdrant.collection_exists(collection_name=DBCOLLECTION):
+        qdrant.create_collection(
+            collection_name=DBCOLLECTION,
+            vectors_config=VectorParams(
+                size=4096,
+                distance=Distance.COSINE
+            )
+        )
 
 #--------------------
 def extract_pages_from_pdf(pdf_path:str) -> list[str]:
@@ -54,51 +47,56 @@ def extract_pages_from_pdf(pdf_path:str) -> list[str]:
 
 #--------------------
 def get_embedding(text:str) -> ollama.EmbeddingsResponse:
-    response = ollama.embeddings(LLMMODEL_EMBED, text)
+    response = ollama.embeddings(model=LLMMODEL_EMBED, prompt=text)
     return response
 
 #--------------------
-def insert_embedding_into_db(
-        doc_name:str, doc_index:int, text:str, embedding:ollama.EmbeddingsResponse) -> str:
-    text_hash = hashlib.sha256(text.encode()).hexdigest()
-    conn = get_pg_conn()
-    cur = conn.cursor()
-    cur.execute( """
-        INSERT INTO embeddings (
-            doc_name,
-            doc_index,
-            text,
-            text_hash,
-            embedding) VALUES (%s, %s, %s, %s, %s)
-        """
-        "", (doc_name, doc_index, text, text_hash, embedding.embedding)
+def insert_embedding_into_db(doc_name:str, content:list[str]) -> str:
+    qdrant = QdrantClient(host=DBHOST, port=DBPORT)
+    points = []
+    for text in content:
+        text_hash = hashlib.sha256(text.encode()).hexdigest()
+        embedding = get_embedding(text)
+        points.append(PointStruct(
+            id=str(uuid.uuid4()),
+            vector=embedding.embedding,
+            payload={
+                "text_hash": text_hash, 
+                "doc_name": doc_name, 
+                "doc_index": content.index(text) + 1,
+                "text": text
+            }
+        ))
+    qdrant.upsert(collection_name=DBCOLLECTION, points=points)
+
+#--------------------
+def delete_from_db_by_hash(text_hash:str):
+    qdrant = QdrantClient(host=DBHOST, port=DBPORT)
+    qdrant.delete(
+        collection_name=DBCOLLECTION,
+        points_selector=FilterSelector(
+            filter=Filter(
+                must=[
+                    FieldCondition(
+                        key="text_hash",
+                        match=MatchValue(value=text_hash)
+                    )
+                ]
+            )
+        )
     )
-    conn.commit()
-    conn.close()
-    return text_hash
 
 #--------------------
-def delete_from_db_by_embedding(embedding:ollama.EmbeddingsResponse):
-    conn = get_pg_conn()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM embeddings WHERE embedding = %s::vector", [embedding.embedding])
-    conn.commit()
-    conn.close()    
-
-#--------------------
-def search_vector_db(query_text:str, limit:int=5) -> list:
-    query_embedding = get_embedding(query_text)
-    conn = get_pg_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT doc_name, doc_index, text, embedding <=> %s::vector AS similarity
-        FROM embeddings
-        ORDER BY similarity ASC
-        LIMIT %s;
-    """, (query_embedding.embedding, limit))
-    results = cur.fetchall()
-    cur.close()
-    return results
+def search_vector_db(query_text:str, limit:int=5) -> list[ScoredPoint]:
+    qdrant = QdrantClient(host=DBHOST, port=DBPORT)
+    embedding = get_embedding(query_text)
+    hits = qdrant.query_points(
+        collection_name=DBCOLLECTION,
+        query=embedding.embedding,
+        with_payload=True,
+        limit=limit
+    )
+    return hits.points
 
 #--------------------
 

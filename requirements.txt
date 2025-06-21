@@ -1,3 +1,4 @@
 ollama
 psycopg
+qdrant-client
 pdfplumber
