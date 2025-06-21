@@ -12,7 +12,7 @@ def test_check_db_prep():
 def test_get_embedding():
     text = open("./testing/erlkoenig.txt", "r").read()
     res = tools.get_embedding(text=text.strip())
-    print(res)
+    print(f"embedding len: {len(res.embedding)}")
 
 #-----------
 # @pytest.mark.skip(reason="Switch Off")
@@ -37,5 +37,15 @@ def test_extract_pages_from_pdf():
     content = tools.extract_pages_from_pdf(pdf_path=pdf_path)
     print(f"\n - page_size = {len(content)}")
     assert len(content) > 2
+
+#-----------
+def test_chat_with_llm():
+    msg_obj = {
+        "role": "user", 
+        "content": "How you are doing?"
+    }
+    res = tools.chat_with_llm(msg_obj=msg_obj)
+    assert "message" in res 
+    print(res.message)
 
 #-----------

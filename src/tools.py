@@ -55,10 +55,15 @@ def insert_embedding_into_db(doc_name:str, content:list[str]) -> str:
     qdrant = QdrantClient(host=DBHOST, port=DBPORT)
     points = []
     for text in content:
+        # UIUIUIUIUIUIUIU
         text_hash = hashlib.sha256(text.encode()).hexdigest()
+        text_hash_bytes = hashlib.sha256(text.encode()).digest()
+        text_hash_bytes_truncated = text_hash_bytes[:16]
+        id = str(uuid.UUID(bytes=text_hash_bytes_truncated))
+        
         embedding = get_embedding(text)
         points.append(PointStruct(
-            id=str(uuid.uuid4()),
+            id=id,
             vector=embedding.embedding,
             payload={
                 "text_hash": text_hash, 
@@ -97,6 +102,12 @@ def search_vector_db(query_text:str, limit:int=5) -> list[ScoredPoint]:
         limit=limit
     )
     return hits.points
+
+#--------------------
+def chat_with_llm(msg_obj:dict, context:list=[]) -> ollama.ChatResponse:
+    context.append(msg_obj)
+    response = ollama.chat(model=LLMMODEL_CHAT, messages=context)
+    return response
 
 #--------------------
 

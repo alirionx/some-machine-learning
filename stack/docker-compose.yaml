@@ -50,7 +50,6 @@ services:
     networks:
       - backend
 
-
 volumes:
   ollama_data:
   qdrant_data:
