@@ -2,3 +2,8 @@ ollama
 psycopg
 qdrant-client
 pdfplumber
+fastapi
+python-multipart
+pydantic
+uvicorn
+minio
