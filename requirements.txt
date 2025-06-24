@@ -6,4 +6,5 @@ fastapi
 python-multipart
 pydantic
 uvicorn
+redis
 minio

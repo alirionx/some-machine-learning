@@ -43,6 +43,16 @@ def get_content_backend_class():
     return ContentBackend()
 
 #--------------------
+def get_memory_backend_class():
+    if settings.MEMORY_BACKEND.lower() == "filesystem": 
+        from memory_backend_filesystem import MemoryBackend 
+    elif settings.MEMORY_BACKEND.lower() == "redis": 
+        from memory_backend_redis import MemoryBackend 
+    else:
+        raise Exception("No valid content backend defined (available => filesystem, redis)")
+    return MemoryBackend()
+
+#--------------------
 def check_db_prep():
     qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
     if not qdrant.collection_exists(collection_name=settings.DB_COLLECTION):
@@ -79,7 +89,7 @@ def get_embedding(text:str) -> ollama.EmbeddingsResponse:
     return response
 
 #--------------------
-def insert_embedding_into_db(doc_name:str, content:list[str]) -> str:
+def insert_embeddings_into_db(doc_name:str, content:list[str]) -> str:
     qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
     points = []
     for text in content:
@@ -103,6 +113,18 @@ def insert_embedding_into_db(doc_name:str, content:list[str]) -> str:
     qdrant.upsert(collection_name=settings.DB_COLLECTION, points=points)
 
 #--------------------
+def search_vector_db(query_text:str, limit:int=5) -> list[ScoredPoint]:
+    qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
+    embedding = get_embedding(query_text)
+    hits = qdrant.query_points(
+        collection_name=settings.DB_COLLECTION,
+        query=embedding.embedding,
+        with_payload=True,
+        limit=limit
+    )
+    return hits.points
+
+#--------------------
 def delete_from_db_by_hash(text_hash:str):
     qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
     qdrant.delete(
@@ -120,16 +142,14 @@ def delete_from_db_by_hash(text_hash:str):
     )
 
 #--------------------
-def search_vector_db(query_text:str, limit:int=5) -> list[ScoredPoint]:
+def clear_collection():
     qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
-    embedding = get_embedding(query_text)
-    hits = qdrant.query_points(
+    qdrant.delete(
         collection_name=settings.DB_COLLECTION,
-        query=embedding.embedding,
-        with_payload=True,
-        limit=limit
+        points_selector=FilterSelector(
+            filter=Filter(must=[])
+        )
     )
-    return hits.points
 
 #--------------------
 

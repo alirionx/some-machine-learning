@@ -1,14 +1,15 @@
 import sys
+from uuid import UUID, uuid4
 import mimetypes
 import uvicorn
 
 from typing import Annotated
-from fastapi import FastAPI, Request, HTTPException, Depends, Header, UploadFile, File
+from fastapi import FastAPI, Request, HTTPException, Depends, Header, UploadFile, File, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 import settings
-from models import StatusMessage, ChatItem, FileItem, Docs2DbList
+from models import StatusMessage, ChatItem, FileItem, Docs2DbList, VectorSearch
 import tools
 
 
@@ -55,15 +56,52 @@ async def api_status_get(request:Request):
   return my_status
 
 #-------------------
-@app.post("/chat", tags=["chat"], response_model=list[ChatItem])
-def chat_post(item:ChatItem ,context:list[ChatItem]=[]):
-    context.append(item)
+@app.get("/chats", tags=["chat"], response_model=list[UUID])
+def chats__get():
     try:
+        memory_backend = tools.get_memory_backend_class()
+        res = memory_backend.list_chat_ids()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return res
+
+#-------------------
+@app.get("/chat/newid", tags=["chat"], response_model=UUID)
+def chat_newid_get():
+    return uuid4()
+
+#-------------------
+@app.post("/chat/{id}", tags=["chat"], response_model=list[ChatItem])
+def chat_post(id:UUID, item:ChatItem):
+    try:
+        memory_backend = tools.get_memory_backend_class()
+        context = memory_backend.get_chat_memory_by_id(id=id)
+        context.append(item)
         context = tools.chat_with_llm(context=context)
+        memory_backend.write_chat_memory_by_id(id=id, data=context)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return context
 
+#-------------------
+@app.get("/chat/{id}", tags=["chat"], response_model=list[ChatItem])
+def chat_get(id:UUID):
+    try:
+        memory_backend = tools.get_memory_backend_class()
+        res = memory_backend.get_chat_memory_by_id(id=id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return res
+
+#-------------------
+@app.delete("/chat/{id}", tags=["chat"], response_model=UUID)
+def chat_delete(id:UUID):
+    try:
+        memory_backend = tools.get_memory_backend_class()
+        memory_backend.delete_chat_memory_by_id(id=id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return id
 
 #-------------------
 @app.get("/content", tags=["content"], response_model=list[FileItem])
@@ -81,6 +119,8 @@ def content_post(files: list[UploadFile] = File(...)):
     uploaded_files = []
     content_backend = tools.get_content_backend_class()
     for file in files:
+        if mimetypes.guess_type(file.filename)[0] not in settings.CONTENT_ALLOWED_MIMES:
+            continue
         try:
             filebytes = file.file.read()
             file_item = content_backend.save_uploaded_content(filename=file.filename, filebytes=filebytes)
@@ -119,16 +159,44 @@ def content_delete(filename:str):
 
 #-------------------
 @app.post("/vector/docs2db", tags=["vector"], response_model=list[FileItem])
-def vector_post(item:Docs2DbList):
+def vector_post(item:Docs2DbList, background_tasks: BackgroundTasks):
+    processed_items = []
     content_backend = tools.get_content_backend_class()
     file_items = content_backend.get_content_list()
-    for fi in file_items:
-        "tbd."
-    return file_items
-
-
+    for fi in [f for f in file_items if f.type in settings.CONTENT_ALLOWED_MIMES and f.type not in item.exclude]:
+        bio = content_backend.get_content_item(filename=fi.name)
+        chunks = []
+        if fi.type == "text/plain":
+            chunks = tools.extract_chunks_from_text(text=bio.getvalue().decode("utf-8"))
+        elif fi.type == "application/pdf":
+            chunks = tools.extract_pages_from_pdf(pdf_bytes=bio.getvalue())
+        else:
+            continue
+        tools.insert_embeddings_into_db(doc_name=fi.name, content=chunks)
+        processed_items.append(fi)
+    return processed_items
 
 #-------------------
+from qdrant_client.models import ScoredPoint
+@app.post("/vector/search", tags=["vector"], response_model=list[ScoredPoint])
+def vector_post(item:VectorSearch):
+    try:
+        res = tools.search_vector_db(**item.model_dump())
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to search vector db: {e}")
+    return res
+
+#-------------------
+@app.delete("/vector/clear", tags=["vector"])
+def vector_delete():
+    try:
+        tools.clear_collection()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to clear collection: {e}")
+
+#-------------------
+
+
 
 
 #-------------------

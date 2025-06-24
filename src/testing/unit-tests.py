@@ -29,11 +29,11 @@ def test_get_embedding():
 
 #-----------
 # @pytest.mark.skip(reason="Switch Off")
-def test_insert_embedding_into_db():
+def test_insert_embeddings_into_db():
     doc_name = "erlkoenig.txt"
     doc_path = os.path.join("./", doc_name)
     text = open(doc_path, "r").read()
-    tools.insert_embedding_into_db(doc_name=doc_name, content=[text])
+    tools.insert_embeddings_into_db(doc_name=doc_name, content=[text])
     
 #-----------
 # @pytest.mark.skip(reason="Switch Off")

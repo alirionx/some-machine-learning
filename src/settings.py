@@ -17,14 +17,20 @@ LLMMODEL_CHUNK_SIZE = int(os.environ.get("LLMMODEL_CHUNK_SIZE", "250"))
 
 ### Content management
 CONTENT_BACKEND = os.environ.get("CONTENT_BACKEND", "filesystem") # filesystem or minio
-
-CONTENT_PATH = os.environ.get("CONTENT_PATH", "./content") # for filesystem
-
+CONTENT_PATH = os.environ.get("CONTENT_PATH", "./data/content") # for filesystem
 CONTENT_MINIO_ENDPOINT = os.environ.get("CONTENT_MINIO_ENDPOINT", "localhost:9000") # for minio
 CONTENT_MINIO_SECURE = bool(os.environ.get("CONTENT_MINIO_SECURE", "")) # for minio
 CONTENT_MINIO_ACCESSKEY = os.environ.get("CONTENT_MINIO_ACCESSKEY", "minio") # for minio
 CONTENT_MINIO_SECRETKEY = os.environ.get("CONTENT_MINIO_SECRETKEY", "minio123") # for minio
 CONTENT_MINIO_BUCKET = os.environ.get("CONTENT_MINIO_BUCKET", "llm-content") # for minio
 
+### Memory management
+MEMORY_BACKEND = os.environ.get("MEMORY_BACKEND", "filesystem") # filesystem or redis
+MEMORY_PATH = os.environ.get("MEMORY_PATH", "./data/memory") # for filesystem
+MEMORY_REDIS_HOST = os.environ.get("MEMORY_REDIS_HOST", "localhost") # for redis
+MEMORY_REDIS_PORT = int(os.environ.get("MEMORY_REDIS_PORT", 6379)) # for redis
+MEMORY_REDIS_CHAT_HISTORY_SET = os.environ.get("MEMORY_REDIS_CHAT_HISTORY_SET", "chat-history") # for redis
+MEMORY_REDIS_JOB_SET = os.environ.get("MEMORY_REDIS_JOB_SET", "background-tasks") # for redis
 
-
+### Static
+CONTENT_ALLOWED_MIMES = ["application/pdf", "text/plain"]

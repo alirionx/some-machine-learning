@@ -55,7 +55,7 @@ def test_multi_chunks_into_db():
             content = tools.extract_chunks_from_text(text=text)
         else:
             continue
-        tools.insert_embedding_into_db(doc_name=filename, content=content)
+        tools.insert_embeddings_into_db(doc_name=filename, content=content)
         print(f" - {filename} : added page size = {len(content)}")
         assert len(content) > 2
     

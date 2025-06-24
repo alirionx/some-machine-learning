@@ -18,7 +18,7 @@ class StatusMessage(BaseModel):
 
 #-------------------- 
 class ChatItem(BaseModel):
-    role: Literal["assistant", "user"]
+    role: Literal["user", "assistant" ]
     content: str
     thinking: str | None = None
     images: list[str] | None = None
@@ -41,11 +41,11 @@ class VectorDbPayload(BaseModel):
             
 #-------------------- 
 class Docs2DbList(BaseModel):
-    include: list[str] | None = ["pdf", "text"]
     exclude: list[str] | None = []
 
-
 #-------------------- 
-
+class VectorSearch(BaseModel):
+    query_text: str
+    limit: int | None = 3
 
 #-------------------- 
