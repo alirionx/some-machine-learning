@@ -25,8 +25,9 @@ from models import ChatItem
 
 #------------------------------------------
 def chat_with_llm(context:list[ChatItem]) -> list[ChatItem]:
+    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
     message = [ item.model_dump() for item in context ]
-    response = ollama.chat(model=settings.LLMMODEL_CHAT, messages=message)
+    response = client.chat(model=settings.LLMMODEL_CHAT, messages=message)
     context.append(
         ChatItem(**response.message.model_dump())
     )
@@ -85,7 +86,8 @@ def extract_chunks_from_text(text:str) -> list[str]:
 
 #--------------------
 def get_embedding(text:str) -> ollama.EmbeddingsResponse:
-    response = ollama.embeddings(model=settings.LLMMODEL_EMBED, prompt=text)
+    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
+    response = client.embeddings(model=settings.LLMMODEL_EMBED, prompt=text)
     return response
 
 #--------------------

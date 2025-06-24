@@ -9,7 +9,10 @@ DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = int((os.environ.get("DB_PORT", "6333")))
 DB_COLLECTION = os.environ.get("DB_COLLECTION", "ollama_collection")
 
-### Language model 
+### LLM Runtime 
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+
+### Large Language model 
 LLMMODEL_CHAT = os.environ.get("LLMMODEL_CHAT", "mistral")
 LLMMODEL_EMBED = os.environ.get("LLMMODEL_EMBED", "avr/sfr-embedding-mistral")
 LLMMODEL_CHUNK_SPLITTER = os.environ.get("LLMMODEL_CHUNK_SPLITTER", "---")
