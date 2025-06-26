@@ -286,8 +286,7 @@ spec:
         - name: MEMORY_REDIS_PORT
           value: "6379"
         - name: LLMMODEL_CHAT
-          # value: "mistral"
-          value: "hf.co/alirionx/mistral-gguf-daniel"
+          value: "mistral"
         ports:
         - containerPort: 5000
           name: http
