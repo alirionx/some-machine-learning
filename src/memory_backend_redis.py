@@ -24,9 +24,43 @@ class MemoryBackend:
         self.client.ping()
 
     #---
+    def list_task_ids(self) -> list[UUID]:
+        res = []
+        for key in self.client.scan_iter(f"{settings.MEMORY_REDIS_TASK_SET}:*"):
+            try: 
+                res.append(UUID(key.split(":")[1]))
+            except:
+                pass
+        return res
+
+    #----
+    def write_task_memory_by_id(self, id:UUID, data:dict):
+        key = f"{settings.MEMORY_REDIS_TASK_SET}:{str(id)}"
+        jdata = json.dumps(data, default=str)
+        self.client.set(name=key, value=jdata)
+    
+    #----
+    def get_task_memory_by_id(self, id:UUID) -> dict:
+        key = f"{settings.MEMORY_REDIS_TASK_SET}:{str(id)}"
+        if not self.client.exists(key):
+            return {}
+        rq = self.client.get(name=key)
+        data = json.loads(rq)
+        return data
+    
+    #----
+    def delete_task_memory_by_id(self, id:UUID) -> UUID:
+        key = f"{settings.MEMORY_REDIS_TASK_SET}:{str(id)}"
+        if not self.client.exists(key):
+            raise Exception(f"Entry with key: '{id}' does not exist.")
+        self.client.unlink(key)
+        return UUID
+
+
+    #---
     def list_chat_ids(self) -> list[UUID]:
         res = []
-        for key in self.client.scan_iter(f"{settings.MEMORY_REDIS_CHAT_HISTORY_SET}:*"):
+        for key in self.client.scan_iter(f"{settings.MEMORY_REDIS_CHAT_SET}:*"):
             try: 
                 res.append(UUID(key.split(":")[1]))
             except:
@@ -35,10 +69,9 @@ class MemoryBackend:
 
     #----
     def write_chat_memory_by_id(self, id:UUID, data:list[ChatItem]):
-        key = f"{settings.MEMORY_REDIS_CHAT_HISTORY_SET}:{str(id)}"
+        key = f"{settings.MEMORY_REDIS_CHAT_SET}:{str(id)}"
         jdata = json.dumps(
             obj=[ item.model_dump() for item in data ],
-            indent=2,
             default=str
         )
         self.client.set(
@@ -48,7 +81,7 @@ class MemoryBackend:
 
     #----
     def get_chat_memory_by_id(self, id:UUID) -> list[ChatItem]:
-        key = f"{settings.MEMORY_REDIS_CHAT_HISTORY_SET}:{str(id)}"
+        key = f"{settings.MEMORY_REDIS_CHAT_SET}:{str(id)}"
         if not self.client.exists(key):
             return []
         rq = self.client.get(name=key)
@@ -58,7 +91,7 @@ class MemoryBackend:
 
     #----
     def delete_chat_memory_by_id(self, id:UUID) -> UUID:
-        key = f"{settings.MEMORY_REDIS_CHAT_HISTORY_SET}:{str(id)}"
+        key = f"{settings.MEMORY_REDIS_CHAT_SET}:{str(id)}"
         if not self.client.exists(key):
             raise Exception(f"Entry with key: '{id}' does not exist.")
         self.client.unlink(key)

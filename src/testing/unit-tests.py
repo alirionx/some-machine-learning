@@ -42,7 +42,7 @@ def test_delete_embedding_by_hash():
     doc_path = os.path.join("./", doc_name)
     text = open(doc_path, "r").read()
     text_hash = hashlib.sha256(text.encode()).hexdigest()
-    tools.delete_from_db_by_hash(text_hash=text_hash)
+    tools.delete_from_collection_by_hash(text_hash=text_hash)
 
 #-----------
 def test_extract_extract_chunks_from_text():

@@ -1,5 +1,6 @@
 from datetime import datetime
 import socket
+from uuid import UUID
 from typing import Any, Literal
 from pydantic import BaseModel
 
@@ -15,6 +16,14 @@ class StatusMessage(BaseModel):
     def model_post_init(self, __context: Any) -> None:
         if not self.timestamp:
             self.timestamp = datetime.now()
+
+#-------------------- 
+class LlmPullList(BaseModel):
+    models: list[str] | None = ["mistral", "avr/sfr-embedding-mistral"]
+
+class LlmTask(BaseModel):
+    model: str
+    id: UUID
 
 #-------------------- 
 class ChatItem(BaseModel):
@@ -40,11 +49,18 @@ class VectorDbPayload(BaseModel):
     text: str
             
 #-------------------- 
-class Docs2DbList(BaseModel):
-    exclude: list[str] | None = []
+class VectorCollection(BaseModel):
+    collection_name: str
+    vector_size: int | None = 4096
+
+#-------------------- 
+class Doc2Collection(BaseModel):
+    doc_name: str
+    collection_name: str
 
 #-------------------- 
 class VectorSearch(BaseModel):
+    collection_name: str
     query_text: str
     limit: int | None = 3
 

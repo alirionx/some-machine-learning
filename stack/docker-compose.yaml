@@ -1,23 +1,23 @@
 version: '3.9'
 
 services:
-  ollama-init:
-    image: ollama/ollama:latest
-    container_name: ollama-init
-    environment:
-      - OLLAMA_HOST=http://ollama:11434
-    entrypoint: []
-    command: 
-     - /bin/sh 
-     - -c 
-     - ollama pull mistral && ollama pull avr/sfr-embedding-mistral
-    volumes:
-      - ollama_data:/root/.ollama
-    depends_on:
-      ollama:
-        condition: service_started
-    networks:
-      - backend
+  # ollama-init:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama-init
+  #   environment:
+  #     - OLLAMA_HOST=http://ollama:11434
+  #   entrypoint: []
+  #   command: 
+  #    - /bin/sh 
+  #    - -c 
+  #    - ollama pull mistral && ollama pull avr/sfr-embedding-mistral
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   depends_on:
+  #     ollama:
+  #       condition: service_started
+  #   networks:
+  #     - backend
     
   ollama:
     image: ollama/ollama:latest

@@ -71,9 +71,9 @@ def test_search_vector_db():
     # query_text = """
     # Einer der etwas zu essen im Wasser fängt.
     # """
-    # query_text = """
-    # Mit Magie die Bude sauber machen.
-    # """
+    query_text = """
+    Mit Magie die Bude sauber machen.
+    """
     # query_text = """
     # mourns the fragile life and tragic death of Marilyn Monroe, 
     # portraying her as a symbol of fleeting fame
@@ -115,7 +115,7 @@ def test_delete_embedding_by_embedding():
             continue
         for text in content:
             text_hash = hashlib.sha256(text.encode()).hexdigest()
-            tools.delete_from_db_by_hash(text_hash=text_hash)
+            tools.delete_from_collection_by_hash(text_hash=text_hash)
         print(f" - {filename} : deleted page size = {len(content)}")
 
 #----------------

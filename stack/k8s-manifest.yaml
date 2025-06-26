@@ -23,10 +23,17 @@ spec:
         volumeMounts:
         - name: ollama-data
           mountPath: /root/.ollama
-        lifecycle:
-          postStart:
-            exec:
-              command: ["/bin/sh", "-c", "sleep 5 && ollama pull mistral && ollama pull avr/sfr-embedding-mistral"]
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "750m"
+            memory: "2Gi"
+        # lifecycle:
+        #   postStart:
+        #     exec:
+        #       command: ["/bin/sh", "-c", "sleep 5 && ollama pull mistral && ollama pull avr/sfr-embedding-mistral"]
   volumeClaimTemplates:
   - metadata:
       name: ollama-data
@@ -35,7 +42,7 @@ spec:
       # storageClassName: "standard"
       resources:
         requests:
-          storage: 20Gi
+          storage: 50Gi
 
 ---
 apiVersion: v1
@@ -78,6 +85,13 @@ spec:
         volumeMounts:
         - name: qdrant-data
           mountPath: /qdrant/storage
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
   volumeClaimTemplates:
   - metadata:
       name: qdrant-data
@@ -143,6 +157,13 @@ spec:
         volumeMounts:
         - name: minio-data
           mountPath: /data
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
   volumeClaimTemplates:
   - metadata:
       name: minio-data
@@ -196,6 +217,13 @@ spec:
         volumeMounts:
         - name: redis-data
           mountPath: /data
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "2Gi"
   volumeClaimTemplates:
   - metadata:
       name: redis-data
@@ -257,6 +285,9 @@ spec:
           value: redis
         - name: MEMORY_REDIS_PORT
           value: "6379"
+        - name: LLMMODEL_CHAT
+          # value: "mistral"
+          value: "hf.co/alirionx/mistral-gguf-daniel"
         ports:
         - containerPort: 5000
           name: http

@@ -1,0 +1,115 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.9 Chrome/134.0.6998.205 Electron/35.4.0 Safari/537.36" version="27.0.9">
+  <diagram name="Page-1" id="En04xdeD7LZpNk3qHrXj">
+    <mxGraphModel dx="2537" dy="982" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-1" value="LLM Runtime&lt;br style=&quot;font-size: 14px;&quot;&gt;(OLLAMA)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;align=left;spacingLeft=10;fontStyle=1;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="-400" y="441" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-3" value="VectorDB&lt;br style=&quot;font-size: 14px;&quot;&gt;(QDRANT)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;align=left;spacingLeft=10;fontStyle=1;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="180" y="440" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-6" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://images.seeklogo.com/logo-png/49/3/qdrant-icon-logo-png_seeklogo-497960.png;" parent="1" vertex="1">
+          <mxGeometry x="315" y="447" width="65" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-7" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://vectorseek.com/wp-content/uploads/2025/02/Ollama-Logo-SVG-PNG-Vector.png;" parent="1" vertex="1">
+          <mxGeometry x="-240" y="462" width="31.06" height="41" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-8" value="LLM Models&lt;br style=&quot;font-size: 12px;&quot;&gt;in GGUF" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=7.714286804199219;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="-392" y="501" width="90" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-9" value="Embeddings&lt;br style=&quot;font-size: 12px;&quot;&gt;Vector Arrays" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=7.714286804199219;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="200" y="500" width="90" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-18" value="InMemoryDB&lt;br style=&quot;font-size: 14px;&quot;&gt;(REDIS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;align=left;spacingLeft=10;fontStyle=1;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="-238" y="611.5" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-21" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://www.datasciencewithraghav.com/wp-content/uploads/2022/07/Redis_Logo.svg_-e1657567730788.png;" parent="1" vertex="1">
+          <mxGeometry x="-108" y="629" width="66.99" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-22" value="" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;aspect=fixed;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.vvd.memory;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="-224" y="683" width="97.37" height="37" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-24" value="ObjectStore&lt;br style=&quot;font-size: 14px;&quot;&gt;(MINIO)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;align=left;spacingLeft=10;fontStyle=1;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="22" y="611.5" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-28" value="Text Docs for Embeddings" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=7.714286804199219;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="43.50999999999999" y="671.5" width="90" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-31" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://www.logomaker.com/wp-content/uploads/2018/03/Minio_logo.png;" parent="1" vertex="1">
+          <mxGeometry x="150" y="621.5" width="102.2" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;fontSize=12;endArrow=none;endFill=0;strokeWidth=2;" parent="1" source="BqdFRb1XySBx_ON4qEnS-32" target="BqdFRb1XySBx_ON4qEnS-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fontSize=12;endArrow=none;endFill=0;strokeWidth=2;" parent="1" source="BqdFRb1XySBx_ON4qEnS-32" target="BqdFRb1XySBx_ON4qEnS-3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;strokeWidth=2;fontSize=12;endArrow=none;endFill=0;" parent="1" source="BqdFRb1XySBx_ON4qEnS-32" target="BqdFRb1XySBx_ON4qEnS-24" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;fontSize=12;endArrow=none;endFill=0;" parent="1" source="BqdFRb1XySBx_ON4qEnS-32" target="BqdFRb1XySBx_ON4qEnS-18" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-32" value="Orchestration and &lt;br&gt;Processing&lt;br&gt;(PYTHON)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;align=left;spacingLeft=10;fontStyle=1;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="-110" y="320" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-33" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://brandslogos.com/wp-content/uploads/images/large/python-logo.png;" parent="1" vertex="1">
+          <mxGeometry x="34" y="338" width="53.2" height="53" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-34" value="Rest Interface&lt;br style=&quot;font-size: 14px;&quot;&gt;(FastAPI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;align=left;spacingLeft=10;fontStyle=1;verticalAlign=top;spacingTop=4;" parent="1" vertex="1">
+          <mxGeometry x="-110" y="250" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-35" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://images.seeklogo.com/logo-png/42/3/fastapi-logo-png_seeklogo-425420.png;" parent="1" vertex="1">
+          <mxGeometry x="28.69999999999999" y="256.25" width="57.5" height="57.5" as="geometry" />
+        </mxCell>
+        <mxCell id="BqdFRb1XySBx_ON4qEnS-36" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/2586/2586221.png;" parent="1" vertex="1">
+          <mxGeometry x="-284" y="504" width="64" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-1" value="LLM (Mistral)" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;size=10;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="-283.47" y="426" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-6" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn.icon-icons.com/icons2/77/PNG/128/adobe_pdf_document_14979.png;" vertex="1" parent="1">
+          <mxGeometry x="760" y="145.75" width="74" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-7" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/6162/6162542.png;" vertex="1" parent="1">
+          <mxGeometry x="760" y="273" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-8" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/11971/11971419.png;" vertex="1" parent="1">
+          <mxGeometry x="760" y="40" width="70" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-9" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://cdn-icons-png.flaticon.com/512/173/173075.png;" vertex="1" parent="1">
+          <mxGeometry x="762" y="384" width="72" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.625;exitY=0.2;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;startArrow=none;startFill=0;endArrow=none;" edge="1" parent="1" source="p2gjqNDutdjSHUQewOqx-10" target="BqdFRb1XySBx_ON4qEnS-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-10" value="" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-599.55" y="598.5" width="200" height="131.5" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-11" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://huggingface.co/front/assets/huggingface_logo-noborder.svg;" vertex="1" parent="1">
+          <mxGeometry x="-526" y="624" width="52.9" height="49" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-16" value="" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=#9673a6;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#e1d5e7;shape=mxgraph.azure.user" vertex="1" parent="1">
+          <mxGeometry x="-28" y="140" width="47" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-18" value="" style="shape=flexArrow;endArrow=classic;html=1;rounded=0;fillColor=#e1d5e7;strokeColor=#9673a6;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-5" y="200" as="sourcePoint" />
+            <mxPoint x="-5.5" y="236.75" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-19" value="LLM (x)" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;size=10;" vertex="1" parent="1">
+          <mxGeometry x="-680" y="657.25" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-20" value="LLM (y)" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;size=10;" vertex="1" parent="1">
+          <mxGeometry x="-680" y="685.75" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p2gjqNDutdjSHUQewOqx-21" value="LLM (z)" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;size=10;" vertex="1" parent="1">
+          <mxGeometry x="-680" y="715.75" width="120" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

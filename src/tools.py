@@ -15,7 +15,7 @@ from qdrant_client.models import (
     MatchValue, 
     FilterSelector,
     ScoredPoint,
-    QueryResponse )
+    CollectionInfo )
 
 
 # some config------------------------------
@@ -24,6 +24,23 @@ from models import ChatItem
 
 
 #------------------------------------------
+def list_llm_models()->list[dict]:
+    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
+    res = client.list()
+    return res.model_dump()['models']
+
+#--------------------
+def pull_llm_model(model:str) -> ollama.ProgressResponse:
+    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
+    progress = client.pull(model=model, stream=False)
+    return progress
+
+#--------------------
+def delete_llm_model(model:str):
+    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
+    client.delete(model=model)
+
+#--------------------
 def chat_with_llm(context:list[ChatItem]) -> list[ChatItem]:
     client = ollama.Client(host=settings.OLLAMA_BASE_URL)
     message = [ item.model_dump() for item in context ]
@@ -57,13 +74,7 @@ def get_memory_backend_class():
 def check_db_prep():
     qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
     if not qdrant.collection_exists(collection_name=settings.DB_COLLECTION):
-        qdrant.create_collection(
-            collection_name=settings.DB_COLLECTION,
-            vectors_config=VectorParams(
-                size=4096,
-                distance=Distance.COSINE
-            )
-        )
+        qdrant.info()
 
 #--------------------
 def extract_pages_from_pdf(pdf_bytes:bytes) -> list[str]:
@@ -91,7 +102,63 @@ def get_embedding(text:str) -> ollama.EmbeddingsResponse:
     return response
 
 #--------------------
-def insert_embeddings_into_db(doc_name:str, content:list[str]) -> str:
+def list_collections() -> list[str]:
+    qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
+    cols = qdrant.get_collections()
+    res = [col.name for col in cols.collections]
+    return res
+
+#--------------------
+def get_collection(collection_name:str) -> CollectionInfo:
+    qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
+    res = qdrant.get_collection(collection_name=collection_name)
+    return res
+
+#--------------------
+def create_collection(collection_name:str, vector_size:int=4096):
+    qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
+    qdrant.create_collection(
+        collection_name=collection_name,
+        vectors_config=VectorParams(
+            size=vector_size,
+            distance=Distance.COSINE))
+
+#--------------------
+def delete_collection(collection_name:str):
+    qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
+    if collection_name not in list_collections():
+        raise Exception(f"collection '{collection_name}' does not exist.")
+    qdrant.delete_collection(collection_name=collection_name)
+
+#--------------------
+def clear_collection(collection_name:str):
+    qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
+    qdrant.delete(
+        collection_name=collection_name,
+        points_selector=FilterSelector(
+            filter=Filter(must=[])
+        )
+    )
+
+#--------------------
+def delete_from_collection_by_hash(text_hash:str):
+    qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
+    qdrant.delete(
+        collection_name=settings.DB_COLLECTION,
+        points_selector=FilterSelector(
+            filter=Filter(
+                must=[
+                    FieldCondition(
+                        key="text_hash",
+                        match=MatchValue(value=text_hash)
+                    )
+                ]
+            )
+        )
+    )
+
+#--------------------
+def insert_embeddings_into_collection(collection_name:str, doc_name:str, content:list[str]) -> str:
     qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
     points = []
     for text in content:
@@ -112,46 +179,19 @@ def insert_embeddings_into_db(doc_name:str, content:list[str]) -> str:
                 "text": text
             }
         ))
-    qdrant.upsert(collection_name=settings.DB_COLLECTION, points=points)
+    qdrant.upsert(collection_name=collection_name, points=points)
 
 #--------------------
-def search_vector_db(query_text:str, limit:int=5) -> list[ScoredPoint]:
+def search_collection(collection_name:str, query_text:str, limit:int=5) -> list[ScoredPoint]:
     qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
     embedding = get_embedding(query_text)
     hits = qdrant.query_points(
-        collection_name=settings.DB_COLLECTION,
+        collection_name=collection_name,
         query=embedding.embedding,
         with_payload=True,
         limit=limit
     )
     return hits.points
-
-#--------------------
-def delete_from_db_by_hash(text_hash:str):
-    qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
-    qdrant.delete(
-        collection_name=settings.DB_COLLECTION,
-        points_selector=FilterSelector(
-            filter=Filter(
-                must=[
-                    FieldCondition(
-                        key="text_hash",
-                        match=MatchValue(value=text_hash)
-                    )
-                ]
-            )
-        )
-    )
-
-#--------------------
-def clear_collection():
-    qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
-    qdrant.delete(
-        collection_name=settings.DB_COLLECTION,
-        points_selector=FilterSelector(
-            filter=Filter(must=[])
-        )
-    )
 
 #--------------------
 

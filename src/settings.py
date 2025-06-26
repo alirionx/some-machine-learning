@@ -29,11 +29,12 @@ CONTENT_MINIO_BUCKET = os.environ.get("CONTENT_MINIO_BUCKET", "llm-content") # f
 
 ### Memory management
 MEMORY_BACKEND = os.environ.get("MEMORY_BACKEND", "filesystem") # filesystem or redis
-MEMORY_PATH = os.environ.get("MEMORY_PATH", "./data/memory") # for filesystem
+MEMORY_PATH_CHAT = os.environ.get("MEMORY_PATH_CHAT", "./data/memory/chat") # for filesystem
+MEMORY_PATH_TASKS = os.environ.get("MEMORY_PATH_TASKS", "./data/memory/tasks") # for filesystem
 MEMORY_REDIS_HOST = os.environ.get("MEMORY_REDIS_HOST", "localhost") # for redis
 MEMORY_REDIS_PORT = int(os.environ.get("MEMORY_REDIS_PORT", 6379)) # for redis
-MEMORY_REDIS_CHAT_HISTORY_SET = os.environ.get("MEMORY_REDIS_CHAT_HISTORY_SET", "chat-history") # for redis
-MEMORY_REDIS_JOB_SET = os.environ.get("MEMORY_REDIS_JOB_SET", "background-tasks") # for redis
+MEMORY_REDIS_CHAT_SET = os.environ.get("MEMORY_REDIS_CHAT_SET", "chat-history") # for redis
+MEMORY_REDIS_TASK_SET = os.environ.get("MEMORY_REDIS_TASK_SET", "background-tasks") # for redis
 
 ### Static
 CONTENT_ALLOWED_MIMES = ["application/pdf", "text/plain"]

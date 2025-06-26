@@ -8,8 +8,19 @@ from fastapi import FastAPI, Request, HTTPException, Depends, Header, UploadFile
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from qdrant_client.models import ScoredPoint, CollectionInfo
+
 import settings
-from models import StatusMessage, ChatItem, FileItem, Docs2DbList, VectorSearch
+from models import (
+    LlmPullList,
+    LlmTask,
+    StatusMessage, 
+    ChatItem, 
+    FileItem, 
+    Doc2Collection, 
+    VectorSearch, 
+    VectorCollection
+)
 import tools
 
 
@@ -21,6 +32,10 @@ tags_metadata = [
     "description": "API State and testing",
   },
   {
+    "name": "llm",
+    "description": "LLM binary management",
+  },
+  {
     "name": "chat",
     "description": "Chat with LLM",
   },
@@ -29,7 +44,7 @@ tags_metadata = [
     "description": "Data and file management",
   },
   {
-    "name": "vector embedding",
+    "name": "vector",
     "description": "Vectorization and embedding",
   }
 ]
@@ -54,6 +69,35 @@ async def api_status_get(request:Request):
     request_url=request.url._url
   )
   return my_status
+
+#------------------------------------------------------
+@app.get("/llms", tags=["llm"], response_model=list[dict])
+def llm_get():
+    try:
+        res = tools.list_llm_models()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return res
+
+#-------------------
+@app.post("/llm/pull", tags=["llm"], response_model=list[LlmTask])
+def llm_pull_post(items:LlmPullList, background_tasks: BackgroundTasks):
+    res = []
+    for model in items.models:
+        res.append(
+            LlmTask(model=model, id=uuid4())
+        )
+        background_tasks.add_task(tools.pull_llm_model, model)
+    return res
+
+#-------------------
+@app.delete("/llm/{model}", tags=["llm"], response_model=str)
+def llm_get(model):
+    try:
+        tools.delete_llm_model(model=model)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return model
 
 #-------------------
 @app.get("/chats", tags=["chat"], response_model=list[UUID])
@@ -103,7 +147,7 @@ def chat_delete(id:UUID):
         raise HTTPException(status_code=400, detail=str(e))
     return id
 
-#-------------------
+#------------------------------------------------------
 @app.get("/content", tags=["content"], response_model=list[FileItem])
 async def contents_get():
     try:
@@ -157,50 +201,91 @@ def content_delete(filename:str):
         raise HTTPException(status_code=400, detail=f"Failed to delete {filename}: {e}")
     return filename
 
+#------------------------------------------------------
+@app.get("/vector/collections", tags=["vector"], response_model=list[str])
+def vector_collections_get():
+    try:
+        res = tools.list_collections()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=e)
+    return res
+
 #-------------------
-@app.post("/vector/docs2db", tags=["vector"], response_model=list[FileItem])
-def vector_post(item:Docs2DbList, background_tasks: BackgroundTasks):
-    processed_items = []
+@app.get("/vector/collection/{collection_name}", tags=["vector"], response_model=CollectionInfo)
+def vector_collection_get(collection_name:str):
+    try:
+        res = tools.get_collection(collection_name=collection_name)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"collection '{e}' not found")
+    return res
+
+#-------------------
+@app.post("/vector/collection", tags=["vector"], response_model=CollectionInfo)
+def vector_collection_post(item:VectorCollection):
+    try:
+        tools.create_collection(
+            collection_name=item.collection_name, vector_size=item.vector_size)
+        res = tools.get_collection(collection_name=item.collection_name)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"collection '{e}' not found")
+    return res
+
+#-------------------
+@app.delete("/vector/clear/{collection_name}", tags=["vector"])
+def vector_clear_delete(collection_name):
+    try:
+        tools.clear_collection(collection_name=collection_name)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to clear collection: {e}")
+
+#-------------------
+@app.delete("/vector/collection/{collection_name}", tags=["vector"], response_model=str)
+def vector_collection_delete(collection_name:str):
+    try:
+        tools.delete_collection(collection_name=collection_name)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"collection '{e}' not found")
+    return collection_name
+
+#-------------------
+@app.post("/vector/doc2collection", tags=["vector"], response_model=FileItem)
+def vector_doc2collection_post(item:Doc2Collection, background_tasks: BackgroundTasks):
     content_backend = tools.get_content_backend_class()
-    file_items = content_backend.get_content_list()
-    for fi in [f for f in file_items if f.type in settings.CONTENT_ALLOWED_MIMES and f.type not in item.exclude]:
-        bio = content_backend.get_content_item(filename=fi.name)
+    if item.collection_name not in tools.list_collections():
+        raise HTTPException(404, f"collection '{item.collection_name}' does not exist.")
+    if item.doc_name not in [ fi.name for fi in content_backend.get_content_list()]:
+        raise HTTPException(404, f"content '{item.doc_name}' does not exist.")
+    try:
+        fi = content_backend.get_content_item(filename=item.doc_name)
+        bio = content_backend.get_content_bio(filename=item.doc_name)
         chunks = []
         if fi.type == "text/plain":
             chunks = tools.extract_chunks_from_text(text=bio.getvalue().decode("utf-8"))
         elif fi.type == "application/pdf":
             chunks = tools.extract_pages_from_pdf(pdf_bytes=bio.getvalue())
         else:
-            continue
-        tools.insert_embeddings_into_db(doc_name=fi.name, content=chunks)
-        processed_items.append(fi)
-    return processed_items
+            raise HTTPException(400, "invalid file type")
+        tools.insert_embeddings_into_collection(
+            collection_name=item.collection_name, 
+            doc_name=item.doc_name,
+            content=chunks)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=e)
+    return fi
 
 #-------------------
-from qdrant_client.models import ScoredPoint
 @app.post("/vector/search", tags=["vector"], response_model=list[ScoredPoint])
 def vector_post(item:VectorSearch):
     try:
-        res = tools.search_vector_db(**item.model_dump())
+        res = tools.search_collection(**item.model_dump())
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to search vector db: {e}")
     return res
 
 #-------------------
-@app.delete("/vector/clear", tags=["vector"])
-def vector_delete():
-    try:
-        tools.clear_collection()
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to clear collection: {e}")
-
-#-------------------
-
-
 
 
 #-------------------
-
 
 
 

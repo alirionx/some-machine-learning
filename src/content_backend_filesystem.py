@@ -51,7 +51,18 @@ class ContentBackend:
         return item
 
     #----
-    def get_content_item(self, filename:str) -> io.BytesIO:
+    def get_content_item(self, filename:str) -> FileItem:
+        file_path = os.path.join(settings.CONTENT_PATH, filename)
+        stats = os.stat(file_path)
+        item = FileItem(
+            name=filename,
+            size=stats.st_size,
+            created=datetime.fromtimestamp(stats.st_ctime),
+            modified=datetime.fromtimestamp(stats.st_mtime),
+            type=mimetypes.guess_type(file_path)[0])
+        return item
+    #----
+    def get_content_bio(self, filename:str) -> io.BytesIO:
         file_path = os.path.join(settings.CONTENT_PATH, filename)
         data = open(file_path, "rb")
         return io.BytesIO(data.read())

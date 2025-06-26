@@ -66,7 +66,18 @@ class ContentBackend:
         return item
 
     #----
-    def get_content_item(self, filename:str) -> io.BytesIO:
+    def get_content_item(self, filename:str) -> FileItem:
+        stats = self.client.stat_object(settings.CONTENT_MINIO_BUCKET, filename)
+        item = FileItem(
+            name=stats.object_name,
+            size=stats.size,
+            created=stats.last_modified,
+            modified=stats.last_modified,
+            type=stats.content_type )
+        return item
+    
+    #----
+    def get_content_bio(self, filename:str) -> io.BytesIO:
         response = self.client.get_object(
             bucket_name=settings.CONTENT_MINIO_BUCKET, object_name=filename)
         data = response.read()
