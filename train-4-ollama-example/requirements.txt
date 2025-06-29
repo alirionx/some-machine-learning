@@ -1,0 +1,13 @@
+# sudo apt install cmake build-essential pkg-config python3.13-dev
+
+transformers 
+transformers[torch]
+tiktoken
+protobuf
+sentencepiece
+datasets
+bitsandbytes
+peft
+huggingface_hub
+numpy
+gguf

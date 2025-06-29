@@ -91,8 +91,8 @@ def llm_pull_post(items:LlmPullList, background_tasks: BackgroundTasks):
     return res
 
 #-------------------
-@app.delete("/llm/{model}", tags=["llm"], response_model=str)
-def llm_get(model):
+@app.delete("/llm", tags=["llm"], response_model=str)
+def llm_get(model:str):
     try:
         tools.delete_llm_model(model=model)
     except Exception as e:

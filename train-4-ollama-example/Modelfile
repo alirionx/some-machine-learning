@@ -1,0 +1,4 @@
+FROM merged-mistral-dq.gguf
+PARAMETER temperature 0
+PARAMETER top_p 0.98
+PARAMETER num_predict 128

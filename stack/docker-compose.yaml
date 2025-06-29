@@ -1,24 +1,29 @@
 version: '3.9'
 
 services:
-  # ollama-init:
-  #   image: ollama/ollama:latest
-  #   container_name: ollama-init
-  #   environment:
-  #     - OLLAMA_HOST=http://ollama:11434
-  #   entrypoint: []
-  #   command: 
-  #    - /bin/sh 
-  #    - -c 
-  #    - ollama pull mistral && ollama pull avr/sfr-embedding-mistral
-  #   volumes:
-  #     - ollama_data:/root/.ollama
-  #   depends_on:
-  #     ollama:
-  #       condition: service_started
-  #   networks:
-  #     - backend
-    
+  some-machine-learning:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - DB_HOST=qdrant
+      - CONTENT_BACKEND=minio
+      - CONTENT_MINIO_ENDPOINT=minio:9000
+      - CONTENT_MINIO_ACCESSKEY=minio
+      - CONTENT_MINIO_SECRETKEY=minio123
+      - MEMORY_BACKEND=redis
+      - MEMORY_REDIS_HOST=redis
+      - MEMORY_REDIS_PORT=6379
+      # - LLMMODEL_CHAT="mistral"
+      - LLMMODEL_CHAT=hf.co/alirionx/mistral-gguf-dq
+    networks:
+      backend:
+        aliases:
+          - some-machine-learning
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -48,7 +53,9 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     networks:
-      - backend
+      backend:
+        aliases:
+          - qdrant
 
   minio:
     image: quay.io/minio/minio
@@ -63,7 +70,9 @@ services:
       - MINIO_ROOT_PASSWORD=minio123
     command: server /data --console-address ":9001"
     networks:
-      - backend
+      backend:
+        aliases:
+          - minio
 
   redis:
     image: redis:latest
@@ -73,7 +82,9 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - backend
+      backend:
+        aliases:
+          - redis
   
 volumes:
   ollama_data:
