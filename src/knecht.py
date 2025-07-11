@@ -19,15 +19,29 @@ import tools
 # res = tools.list_collections()  
 # print(res)
 
+# res = tools.list_llm_models()  
+# print(res)
 
-# from ollama import Client
-# from time import sleep
+from ollama import Client
+from time import sleep
 
-# client = Client(host="http://localhost:11434")
-# progress = client.pull(model="mistral", stream=True)
-# for update in progress:
-#     print(update)
-#     sleep(1)
+test_model = "mistral:latest"
+client = Client(host="http://localhost:11434")
 
-res = tools.list_llm_models()  
-print(res)
+items = client.list()
+models = [item.model for item in items.models]
+if test_model in models:
+    client.delete(model=test_model)
+
+
+# progress = client.pull(model=test_model, stream=False)
+# print(progress.model_dump())
+
+progress = client.pull(model=test_model, stream=True)
+for update in progress:
+    if update.completed and update.completed == update.total:
+        break
+    print(update.model_dump())
+    sleep(5)
+
+

@@ -17,8 +17,8 @@ services:
       - MEMORY_BACKEND=redis
       - MEMORY_REDIS_HOST=redis
       - MEMORY_REDIS_PORT=6379
-      # - LLMMODEL_CHAT="mistral"
-      - LLMMODEL_CHAT=hf.co/alirionx/mistral-gguf-dq
+      - LLMMODEL_CHAT="mistral"
+      # - LLMMODEL_CHAT=hf.co/alirionx/mistral-gguf-dq
     networks:
       backend:
         aliases:

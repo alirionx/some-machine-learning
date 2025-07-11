@@ -4,6 +4,8 @@ from uuid import UUID
 from typing import Any, Literal
 from pydantic import BaseModel
 
+import settings
+
 #--------------------------------------------------------
 class StatusMessage(BaseModel):
     timestamp: datetime | None = None
@@ -18,20 +20,27 @@ class StatusMessage(BaseModel):
             self.timestamp = datetime.now()
 
 #-------------------- 
-class LlmPullList(BaseModel):
+class LlmList(BaseModel):
     models: list[str] | None = ["mistral", "avr/sfr-embedding-mistral"]
+    stream: bool | None = False
 
 class LlmTask(BaseModel):
-    model: str
     id: UUID
+    model: str
+    completed: int | None = None
+    total: int | None = None
+    status: str | None = None
+    digest: str | None = None
 
 #-------------------- 
 class ChatItem(BaseModel):
     role: Literal["user", "assistant" ]
     content: str
-    thinking: str | None = None
-    images: list[str] | None = None
-    tool_calls: list[dict] | None = None
+    model: str | None = settings.LLMMODEL_DEFAULT_CHAT
+
+    # thinking: str | None = None
+    # images: list[str] | None = None
+    # tool_calls: list[dict] | None = None
 
 #-------------------- 
 class FileItem(BaseModel):
@@ -57,11 +66,13 @@ class VectorCollection(BaseModel):
 class Doc2Collection(BaseModel):
     doc_name: str
     collection_name: str
+    model: str | None = settings.LLMMODEL_DEFAULT_EMBED
 
 #-------------------- 
 class VectorSearch(BaseModel):
     collection_name: str
     query_text: str
     limit: int | None = 3
+    model: str | None = settings.LLMMODEL_DEFAULT_EMBED
 
 #-------------------- 

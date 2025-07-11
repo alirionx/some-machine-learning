@@ -1,3 +1,4 @@
+from time import sleep
 import io
 import hashlib
 import uuid
@@ -20,37 +21,10 @@ from qdrant_client.models import (
 
 # some config------------------------------
 import settings
-from models import ChatItem
+from models import ChatItem, LlmTask
 
 
 #------------------------------------------
-def list_llm_models()->list[dict]:
-    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
-    res = client.list()
-    return res.model_dump()['models']
-
-#--------------------
-def pull_llm_model(model:str) -> ollama.ProgressResponse:
-    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
-    progress = client.pull(model=model, stream=False)
-    return progress
-
-#--------------------
-def delete_llm_model(model:str):
-    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
-    client.delete(model=model)
-
-#--------------------
-def chat_with_llm(context:list[ChatItem]) -> list[ChatItem]:
-    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
-    message = [ item.model_dump() for item in context ]
-    response = client.chat(model=settings.LLMMODEL_CHAT, messages=message)
-    context.append(
-        ChatItem(**response.message.model_dump())
-    )
-    return context
-
-#--------------------
 def get_content_backend_class():
     if settings.CONTENT_BACKEND.lower() == "filesystem": 
         from content_backend_filesystem import ContentBackend 
@@ -77,6 +51,49 @@ def check_db_prep():
         qdrant.info()
 
 #--------------------
+def list_llm_models()->list[dict]:
+    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
+    res = client.list()
+    return res.model_dump()['models']
+
+#--------------------
+def pull_llm_model(item:LlmTask, stream:bool=False):
+    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
+    memory_backend = get_memory_backend_class()
+    memory_backend.write_task_memory_by_id(id=item.id, data=item.model_dump())
+    if stream:
+        progress = client.pull(model=item.model, stream=stream)
+        for update in progress:
+            if update.completed and update.completed == update.total:
+                break
+            data = LlmTask(id=item.id, model=item.model, **update.model_dump())
+            data.model = item.model 
+            memory_backend.write_task_memory_by_id(
+                id=item.id, data=data.model_dump())
+            sleep(settings.TASK_UPDATE_INTERVAL)
+    else:
+        progress = client.pull(model=item.model, stream=stream)
+        data = LlmTask(id=item.id, model=item.model, **progress.model_dump())
+        data.model = item.model
+        memory_backend.write_task_memory_by_id(id=item.id, data=data.model_dump())
+
+#--------------------
+def delete_llm_model(model:str):
+    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
+    client.delete(model=model)
+
+#--------------------
+def chat_with_llm(context:list[ChatItem], 
+                  model:str=settings.LLMMODEL_DEFAULT_CHAT) -> list[ChatItem]:    
+    client = ollama.Client(host=settings.OLLAMA_BASE_URL)
+    message = [ item.model_dump() for item in context ]
+    response = client.chat(model=model, messages=message)
+    item = ChatItem(**response.message.model_dump())
+    item.model = model
+    context.append(item)
+    return context
+
+#--------------------
 def extract_pages_from_pdf(pdf_bytes:bytes) -> list[str]:
     file_like = io.BytesIO(pdf_bytes)
     content = [] 
@@ -96,9 +113,9 @@ def extract_chunks_from_text(text:str) -> list[str]:
     return content
 
 #--------------------
-def get_embedding(text:str) -> ollama.EmbeddingsResponse:
+def get_embedding(text:str, model:str=settings.LLMMODEL_DEFAULT_EMBED) -> ollama.EmbeddingsResponse:
     client = ollama.Client(host=settings.OLLAMA_BASE_URL)
-    response = client.embeddings(model=settings.LLMMODEL_EMBED, prompt=text)
+    response = client.embeddings(model=model, prompt=text)
     return response
 
 #--------------------
@@ -158,7 +175,11 @@ def delete_from_collection_by_hash(text_hash:str):
     )
 
 #--------------------
-def insert_embeddings_into_collection(collection_name:str, doc_name:str, content:list[str]) -> str:
+def insert_embeddings_into_collection(
+        collection_name:str, 
+        doc_name:str, 
+        content:list[str], 
+        model:str=settings.LLMMODEL_DEFAULT_EMBED) -> str:
     qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
     points = []
     for text in content:
@@ -168,7 +189,7 @@ def insert_embeddings_into_collection(collection_name:str, doc_name:str, content
         text_hash_bytes_truncated = text_hash_bytes[:16]
         id = str(uuid.UUID(bytes=text_hash_bytes_truncated))
         
-        embedding = get_embedding(text)
+        embedding = get_embedding(text, model=model)
         points.append(PointStruct(
             id=id,
             vector=embedding.embedding,
@@ -182,9 +203,13 @@ def insert_embeddings_into_collection(collection_name:str, doc_name:str, content
     qdrant.upsert(collection_name=collection_name, points=points)
 
 #--------------------
-def search_collection(collection_name:str, query_text:str, limit:int=5) -> list[ScoredPoint]:
+def search_collection(
+        collection_name:str, 
+        query_text:str, 
+        limit:int=5,
+        model:str=settings.LLMMODEL_DEFAULT_EMBED) -> list[ScoredPoint]:
     qdrant = QdrantClient(host=settings.DB_HOST, port=settings.DB_PORT)
-    embedding = get_embedding(query_text)
+    embedding = get_embedding(text=query_text, model=model)
     hits = qdrant.query_points(
         collection_name=collection_name,
         query=embedding.embedding,

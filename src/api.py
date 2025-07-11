@@ -12,7 +12,7 @@ from qdrant_client.models import ScoredPoint, CollectionInfo
 
 import settings
 from models import (
-    LlmPullList,
+    LlmList,
     LlmTask,
     StatusMessage, 
     ChatItem, 
@@ -34,6 +34,10 @@ tags_metadata = [
   {
     "name": "llm",
     "description": "LLM binary management",
+  },
+  {
+    "name": "tasks",
+    "description": "Background Task status",
   },
   {
     "name": "chat",
@@ -81,23 +85,54 @@ def llm_get():
 
 #-------------------
 @app.post("/llm/pull", tags=["llm"], response_model=list[LlmTask])
-def llm_pull_post(items:LlmPullList, background_tasks: BackgroundTasks):
+def llm_pull_post(data:LlmList, background_tasks: BackgroundTasks):
     res = []
-    for model in items.models:
-        res.append(
-            LlmTask(model=model, id=uuid4())
+    for model in data.models:
+        item = LlmTask(
+            model=model, 
+            id=uuid4(), 
+            type="pull", 
+            status="initialized"
         )
-        background_tasks.add_task(tools.pull_llm_model, model)
+        res.append(item)
+        background_tasks.add_task(tools.pull_llm_model, item, data.stream)
     return res
 
 #-------------------
-@app.delete("/llm", tags=["llm"], response_model=str)
-def llm_get(model:str):
+@app.delete("/llm", tags=["llm"], response_model=LlmList)
+def llm_delete(item:LlmList):
     try:
-        tools.delete_llm_model(model=model)
+        for model in item.models:
+            tools.delete_llm_model(model=model)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return model
+    return item
+
+#-------------------
+@app.get("/tasks", tags=["tasks"], response_model=list[LlmTask])
+def llm_pulls_get():
+    res = []
+    try:
+        memory_backend = tools.get_memory_backend_class()
+        for id in memory_backend.list_task_ids():
+            data = memory_backend.get_task_memory_by_id(id=id)
+            res.append(LlmTask(**data))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return res
+
+#-------------------
+@app.delete("/tasks", tags=["tasks"], response_model=list[UUID])
+def llm_pulls_delete():
+    res = []
+    try:
+        memory_backend = tools.get_memory_backend_class()
+        for id in memory_backend.list_task_ids():
+            memory_backend.delete_task_memory_by_id(id=id)
+            res.append(id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return res
 
 #-------------------
 @app.get("/chats", tags=["chat"], response_model=list[UUID])
@@ -121,7 +156,7 @@ def chat_post(id:UUID, item:ChatItem):
         memory_backend = tools.get_memory_backend_class()
         context = memory_backend.get_chat_memory_by_id(id=id)
         context.append(item)
-        context = tools.chat_with_llm(context=context)
+        context = tools.chat_with_llm(model=item.model, context=context)
         memory_backend.write_chat_memory_by_id(id=id, data=context)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -268,7 +303,8 @@ def vector_doc2collection_post(item:Doc2Collection, background_tasks: Background
         tools.insert_embeddings_into_collection(
             collection_name=item.collection_name, 
             doc_name=item.doc_name,
-            content=chunks)
+            content=chunks,
+            model=item.model)
     except Exception as e:
         raise HTTPException(status_code=404, detail=e)
     return fi

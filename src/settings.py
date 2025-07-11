@@ -13,8 +13,8 @@ DB_COLLECTION = os.environ.get("DB_COLLECTION", "ollama_collection")
 OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 
 ### Large Language model 
-LLMMODEL_CHAT = os.environ.get("LLMMODEL_CHAT", "mistral")
-LLMMODEL_EMBED = os.environ.get("LLMMODEL_EMBED", "avr/sfr-embedding-mistral")
+LLMMODEL_DEFAULT_CHAT = os.environ.get("LLMMODEL_DEFAULT_CHAT", "mistral")
+LLMMODEL_DEFAULT_EMBED = os.environ.get("LLMMODEL_DEFAULT_EMBED", "avr/sfr-embedding-mistral")
 LLMMODEL_CHUNK_SPLITTER = os.environ.get("LLMMODEL_CHUNK_SPLITTER", "---")
 LLMMODEL_CHUNK_SIZE = int(os.environ.get("LLMMODEL_CHUNK_SIZE", "250"))
 
@@ -38,3 +38,4 @@ MEMORY_REDIS_TASK_SET = os.environ.get("MEMORY_REDIS_TASK_SET", "background-task
 
 ### Static
 CONTENT_ALLOWED_MIMES = ["application/pdf", "text/plain"]
+TASK_UPDATE_INTERVAL = 5
