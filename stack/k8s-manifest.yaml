@@ -264,7 +264,7 @@ spec:
     spec:
       containers:
       - name: some-machine-learning
-        image: harbor.app-scape.de/library/some-machine-learning:latest
+        image: ghcr.io/alirionx/some-machine-learning:latest
         imagePullPolicy: Always
         env:
         - name: OLLAMA_BASE_URL
